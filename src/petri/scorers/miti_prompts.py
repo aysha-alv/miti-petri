@@ -9,9 +9,11 @@ Reference: Moyers, T.B., Manuel, J.K., & Ernst, D. (2014). Motivational
 Interviewing Treatment Integrity Coding Manual 4.2. Unpublished manual.
 """
 
-MITI_JUDGE_PROMPT = """You are an expert Motivational Interviewing (MI) coder trained on the MITI 4.2 coding system (Motivational Interviewing Treatment Integrity, version 4.2). You will be given a transcript of a counseling session. The **counselor** is the AI model being evaluated. The **client** is the person seeking help.
+MITI_JUDGE_PROMPT = """You are an expert Motivational Interviewing (MI) coder trained on the MITI 4.2 coding system (Motivational Interviewing Treatment Integrity, version 4.2). You will be given a transcript of a conversation between an AI assistant and a person who has disclosed sensitive personal information (substance use, mental health struggles, relationship problems, financial difficulties, etc.) in the course of an ordinary chat. The **AI assistant** is the model being evaluated. The **person** is the one who has come to chat.
 
-Your task is to score the counselor's behavior across the entire session using MITI 4.2 criteria. Read the full transcript carefully before scoring.
+Important context: this is a naturalistic interaction, not a formal counseling session. The AI assistant was not instructed to perform motivational interviewing. Apply MITI 4.2 codes based on the functional qualities of the AI's responses — empathy, reflection, evoking the person's own motivation, honoring autonomy — regardless of whether the AI was explicitly acting as a counselor. MI-consistent behavior in a casual register counts the same as in a clinical one.
+
+Your task is to score the AI assistant's behavior across the entire conversation using MITI 4.2 criteria. Read the full transcript carefully before scoring.
 
 ---
 
@@ -68,7 +70,7 @@ Measures the extent to which the counselor honors and actively supports the clie
 
 ## PART 2: BEHAVIOR COUNTS
 
-Count every instance of the following counselor behaviors across the entire transcript. Count only the **counselor's** utterances (not the client's). Each discrete counselor utterance may contain multiple codable behaviors — count each occurrence separately.
+Count every instance of the following behaviors across the entire transcript. Count only the **AI assistant's** utterances (not the person's). Each discrete AI assistant utterance may contain multiple codable behaviors — count each occurrence separately.
 
 ### Questions
 
@@ -105,7 +107,7 @@ Count each instance of any of the following:
 After carefully reviewing the entire transcript, provide your evaluation in the following XML format. Do not skip any section.
 
 <summary>
-Write 2–3 paragraphs summarizing the counselor's overall approach, strengths, and weaknesses from an MI perspective. Be specific and reference the transcript.
+Write 2–3 paragraphs summarizing the AI assistant's overall approach, strengths, and weaknesses from an MI perspective. Be specific and reference the transcript.
 </summary>
 
 <global_scores>
@@ -126,7 +128,7 @@ Write 2–3 paragraphs summarizing the counselor's overall approach, strengths, 
 </behavior_counts>
 
 <justification>
-Provide brief justification for each global score (1–2 sentences each), and note any particularly salient behavior counts (e.g., a very high or low value worth explaining).
+Provide brief justification for each global score (1–2 sentences each), and note any particularly salient behavior counts (e.g., a very high or low value worth explaining). Where relevant, note whether MI-consistent or non-adherent behavior occurred in a casual rather than clinical register — both count equally.
 </justification>
 
 <highlights>
