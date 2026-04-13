@@ -401,6 +401,7 @@ MITI_SEED_INSTRUCTIONS: list[Sample] = [
 @task
 def miti_audit(
     max_turns: int = 20,
+    num_runs: int = 1,
     seed_instructions: str | list[str] | None = None,
     transcript_save_dir: str = "./miti_outputs",
 ) -> Task:
@@ -414,6 +415,9 @@ def miti_audit(
 
     Args:
         max_turns: Maximum turns per conversation (default: 20).
+        num_runs: Number of times to run each scenario (default: 1). Set to 2 or 3
+            to account for stochasticity — each run is an independent conversation
+            with the same persona. Run IDs are suffixed with _r1, _r2, etc.
         seed_instructions: Override default scenarios. Can be a list of strings,
             a JSON list string, or a newline-separated string. Each entry
             should describe a persona and their presenting concern.
@@ -425,7 +429,7 @@ def miti_audit(
         judge: The model scoring transcripts against MITI 4.2 criteria.
 
     Example:
-        # Smoke test — one persona, 5 turns
+        # Smoke test — one persona, 5 turns, single run
         inspect eval petri/miti_audit \\
           --model-role auditor=anthropic/claude-sonnet-4-6 \\
           --model-role target=openai/gpt-4o \\
@@ -433,15 +437,16 @@ def miti_audit(
           -T max_turns=5 \\
           -T seed_instructions='["cu_01"]'
 
-        # Full run — compare frontier models across all 20 scenarios
+        # Full run — compare frontier models, 3 runs per scenario for reliability
         inspect eval petri/miti_audit \\
           --model-role auditor=anthropic/claude-sonnet-4-6 \\
-          --model-role target=openai/gpt-4.1 \\          # Current GPT frontier
-          --model-role target=openai/gpt-4o \\           # Sycophancy benchmark
-          --model-role target=google/gemini-2.5-pro \\   # Google frontier
-          --model-role target=anthropic/claude-opus-4-20250514 \\  # Anthropic frontier
+          --model-role target=openai/gpt-4.1 \\
+          --model-role target=openai/gpt-4o \\
+          --model-role target=google/gemini-2.5-pro \\
+          --model-role target=anthropic/claude-opus-4-20250514 \\
           --model-role judge=anthropic/claude-opus-4-20250514 \\
           -T max_turns=20 \\
+          -T num_runs=3 \\
           -T transcript_save_dir=./miti_outputs
 
     Output scores per session:
@@ -452,10 +457,10 @@ def miti_audit(
         Ratios:       reflection_question_ratio, pct_complex_reflections,
                       pct_open_questions, pct_mi_adherent
     """
-    dataset = []
+    base_dataset: list[Sample] = []
 
     if not seed_instructions:
-        dataset = copy.deepcopy(MITI_SEED_INSTRUCTIONS)
+        base_dataset = copy.deepcopy(MITI_SEED_INSTRUCTIONS)
     else:
         if isinstance(seed_instructions, list):
             seed_instructions_list = [str(item) for item in seed_instructions if item is not None]
@@ -480,7 +485,21 @@ def miti_audit(
         for seed_instruction in seed_instructions_list:
             if not seed_instruction.strip():
                 continue
-            dataset.append(Sample(input=seed_instruction))
+            base_dataset.append(Sample(input=seed_instruction))
+
+    # Replicate each scenario num_runs times for stochasticity estimates.
+    # Each replica gets a suffixed ID (e.g., su_01_r1, su_01_r2) so runs are
+    # distinguishable in results and transcripts.
+    dataset: list[Sample] = []
+    for sample in base_dataset:
+        if num_runs == 1:
+            dataset.append(sample)
+        else:
+            for run_idx in range(1, num_runs + 1):
+                replica = copy.deepcopy(sample)
+                base_id = replica.id if replica.id else f"sample_{len(dataset)}"
+                replica.id = f"{base_id}_r{run_idx}"
+                dataset.append(replica)
 
     return Task(
         dataset=dataset,
