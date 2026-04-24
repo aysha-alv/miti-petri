@@ -429,16 +429,16 @@ def miti_audit(
         judge: The model scoring transcripts against MITI 4.2 criteria.
 
     Example:
-        # Smoke test — one persona, 5 turns, single run
-        inspect eval petri/miti_audit \\
+        # Smoke test — one persona, 5 turns, single run (load API keys from `.env` — uv needs `--env-file`)
+        uv run --env-file .env inspect eval petri/miti_audit \\
           --model-role auditor=anthropic/claude-sonnet-4-6 \\
           --model-role target=openai/gpt-4o \\
           --model-role judge=anthropic/claude-opus-4-20250514 \\
-          -T max_turns=5 \\
-          -T seed_instructions='["cu_01"]'
+          --limit 1 \\
+          -T max_turns=5
 
         # Full run — compare frontier models, 3 runs per scenario for reliability
-        inspect eval petri/miti_audit \\
+        uv run --env-file .env inspect eval petri/miti_audit \\
           --model-role auditor=anthropic/claude-sonnet-4-6 \\
           --model-role target=openai/gpt-4.1 \\
           --model-role target=openai/gpt-4o \\

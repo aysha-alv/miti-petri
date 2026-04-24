@@ -344,11 +344,26 @@ def sample_to_transcript(sample: TaskState, instance: str | None = None) -> Tran
 
     transcript_events = audit_store.events
 
+    now = datetime.now()
     metadata = audit_store.metadata
-    metadata.judge_output = judge_output
-    metadata.tags = tags
-    metadata.updated_at = datetime.now()
-    metadata.seed_instruction = audit_store.seed_instructions
+    if metadata is None:
+        sid = getattr(sample, "uuid", None)
+        transcript_id = str(sid) if sid is not None else str(uuid.uuid4())
+        metadata = TranscriptMetadata(
+            transcript_id=transcript_id,
+            auditor_model=None,
+            target_model=None,
+            created_at=now,
+            updated_at=now,
+            seed_instruction=audit_store.seed_instructions,
+            tags=tags,
+            judge_output=judge_output,
+        )
+    else:
+        metadata.judge_output = judge_output
+        metadata.tags = tags
+        metadata.updated_at = now
+        metadata.seed_instruction = audit_store.seed_instructions
 
     transcript = Transcript(
         events=transcript_events,

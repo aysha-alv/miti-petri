@@ -15,6 +15,7 @@ dependencies = [
     "ipywidgets>=8.1.7",
     "openai>=1.91.0",
     "rapidfuzz>=3.0.0",
+    "xai-sdk>=1.11.0",
 ]
 
 [project.scripts]
